@@ -1,8 +1,8 @@
 const bcrypt = require('bcrypt');
-const { getUserByUsername, addNewUser, getRoleByRoleId } = require('../database/queries');
+const { getUserByUsername, addNewUser, getRoleByRoleId, addToken, getToken } = require('../database/queries');
 const CustomError = require('../middleware/custom-error');
 const { usernameValidate, passwordValidate, emailValidate } = require('../utils/data-validation');
-const { generateAccessToken, generateRefreshToken } = require('../utils/token');
+const { generateAccessToken, generateRefreshToken, getObjectFromToken } = require('../utils/token');
 const saltRounds = 10;
 
 const loginHandler = async (req, res, next) => {
@@ -111,6 +111,58 @@ const registerHanlder = async (req, res, next) => {
     }
 }
 
+const logoutHandler = async (req, res, next) => {
+    const {accessToken, refreshToken} = req.body;
+    
+    if(accessToken && refreshToken) {
+        // record logout token
+        try {
+            await addToken(accessToken);
+            await addToken(refreshToken);
+            req.user = null;
+            res.json({
+                status: 200,
+                message: "logout successfully",
+            });
+        }
+        catch(err) {
+            console.log(err);
+            next(new CustomError('Failed to logout', 500));
+        }
+    }
+    else {
+        res.status(400).json({
+            status: 400,
+            message: 'Invalid token',
+        })
+    }
+}
+
+const refreshTokenHandler = async (req, res, next) => {
+    const refreshToken = req.body.refreshToken;
+    try {
+        const obj = getObjectFromToken(refreshToken);
+        const logoutToken = await getToken(refreshToken);
+        if(logoutToken) {
+            return next(new CustomError('Invalid token', 400));
+        }
+        const accessToken = generateAccessToken({
+            id: obj.id,
+            username: obj.username,
+        });
+        res.json({
+            status: 200,
+            message: 'successfully',
+            data: {
+                accessToken
+            }
+        });
+    }
+    catch (err) {
+        next(new CustomError('Invalid token', 400));
+    }
+}
+
 module.exports = {
-    loginHandler, registerHanlder
+    loginHandler, registerHanlder, logoutHandler, refreshTokenHandler,
 }

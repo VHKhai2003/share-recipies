@@ -1,14 +1,28 @@
 const pool = require('../config');
 
 const getUserByUsername = async (username) => {
-    const result = await pool.query('Select* from users where username = $1', [username]);
-    if(result.rowCount == 1) {
+    const result = await pool.query(
+        'Select* from users where username = $1', 
+        [username]
+    );
+    if(result.rowCount > 0) {
         return result.rows[0];
     }
     return null;
 }
 
-//add new user for register function
+const getUserById = async (id) => {
+    const result = await pool.query(
+        'Select* from users where userid = $1', 
+        [id]
+    );
+    if(result.rowCount > 0) {
+        return result.rows[0];
+    }
+    return null;
+}
+
+// add new user for register function
 const addNewUser = async (user) => {
     const queryString = 'insert into Users(username, password, name, email, role) values($1, $2, $3, $4, $5)';
     const values = [user.username, user.password, user.name, user.email, 1];
@@ -17,5 +31,5 @@ const addNewUser = async (user) => {
 
 
 module.exports = {
-    getUserByUsername, addNewUser
+    getUserByUsername, getUserById, addNewUser,
 }

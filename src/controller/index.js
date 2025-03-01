@@ -1,5 +1,5 @@
-const { loginHandler, registerHanlder } = require('./auth.c');
+const { loginHandler, registerHanlder, logoutHandler, refreshTokenHandler } = require('./auth.c');
 
 module.exports = {
-    loginHandler, registerHanlder,
+    loginHandler, registerHanlder, logoutHandler, refreshTokenHandler,
 }
