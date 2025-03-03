@@ -29,7 +29,13 @@ const addNewUser = async (user) => {
     await pool.query(queryString, values);
 }
 
+const updateUserInfo = async (user) => {
+    const queryString = 'update Users set email = $1, name = $2, avatar = $3 where userid = $4 returning *';
+    const values = [user.email, user.name, user.avatar, user.userid];
+    const result = await pool.query(queryString, values);
+    return result.rowCount > 0 ? result.rows[0] : null;
+}
 
 module.exports = {
-    getUserByUsername, getUserById, addNewUser,
+    getUserByUsername, getUserById, addNewUser, updateUserInfo,
 }

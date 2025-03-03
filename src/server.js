@@ -1,16 +1,18 @@
 require('dotenv').config();
 const express = require('express');
-const { authRouter } = require('./src/router');
-const { tokenFilter, isAuthenticated } = require('./src/middleware/authentication');
-const { isAdmin, isSuperAdmin } = require('./src/middleware/authorization');
-
+const { authRouter, userRouter } = require('./router');
+const { tokenFilter, isAuthenticated } = require('./middleware/authentication');
+const { isAdmin, isSuperAdmin } = require('./middleware/authorization');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(tokenFilter);
 
 // using router
 app.use('/auth', authRouter);
+app.use('/user', userRouter);
 
 app.get("/token-filter", (req, res) => {
     res.json(req.user);
@@ -29,7 +31,7 @@ app.get("/is-super-admin", isSuperAdmin, (req, res) => {
 })
 
 // global exception handler
-require('./src/middleware/error-handler')(app);
+require('./middleware/error-handler')(app);
 
 const port = process.env.PORT;
 app.listen(port, () => {
