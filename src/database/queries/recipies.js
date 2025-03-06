@@ -7,24 +7,25 @@ const getRecipes = async (page, perPage, sortBy, category, status = 'Approved', 
                         \nleft join RATING on RECIPES.RecipeId = RATING.RecipeId
                         \nleft join USERS on RECIPES.Author = USERS.UserId
                         \nwhere RECIPES.Status != 'Deleted' and USERS.Status = 'Active' `;
-    let values = [(page - 1) * perPage, perPage, status];
+    let values = [(page - 1) * perPage, perPage];
     // filter by category
     if (category !== 'all') {
-        queryString += '\nand CATEGORIES.CategoryId = $4';
         values.push(category);
+        queryString += '\nand CATEGORIES.CategoryId = $3';
     }
 
+    // filter by status
+    if(status) {
+        values.push(status);
+        queryString += `\nand RECIPES.status = $${values.length}`;
+    }
+    
     // search by keyword
     if (keyword) {
-        if (category !== 'all') {
-            queryString += '\nand LOWER(RECIPES.Name) like LOWER($5)';
-        } else {
-            queryString += '\nand LOWER(RECIPES.Name) like LOWER($4)';
-        }
         values.push(`%${keyword}%`);
+        queryString += `\nand LOWER(RECIPES.Name) like LOWER($${values.length})`;
     }
 
-    queryString += "\nand RECIPES.status = $3";
     queryString += '\ngroup by RECIPES.RecipeId, CATEGORIES.Name, USERS.UserId';
     // sort
     queryString += sortBy === 'date' ? '\norder by DateSubmit Desc' : '';
@@ -45,38 +46,31 @@ const getRecipeById = async (recipeId) => {
     const values = [recipeId];
     const recipeData = await postgres.query(queryString, values);
     return recipeData.rowCount > 0 ? recipeData.rows[0] : null;
-
 }
 
-const getNumOfRecipes = async (category = 'all', status = 'Approved', keyword, year, userId) => {
+const getNumOfRecipes = async (category = 'all', status = 'Approved', keyword) => {
     let queryString = `select count(*)
                         \nfrom RECIPES left join CATEGORIES on RECIPES.Category = CATEGORIES.CategoryId
                         \nleft join USERS on RECIPES.Author = USERS.UserId
                         \nwhere RECIPES.Status != 'Deleted' and USERS.Status = 'Active'`;
-    let values = [status];
-    let setClauses = [];
+    const values = [];
+    // filter by category
     if (category !== 'all') {
-        setClauses.push('\nand CATEGORIES.CategoryId = $' + (setClauses.length + 2));
         values.push(category);
+        queryString += `\nand CATEGORIES.CategoryId = $${values.length}`;
     }
-
+    
+    // filter by status
+    if(status) {
+        values.push(status);
+        queryString += `\nand RECIPES.status = $${values.length}`;
+    }
+    
+    // search by keyword
     if (keyword) {
-        setClauses.push('\nand LOWER(RECIPES.Name) like LOWER($' + (setClauses.length + 2) + ')');
         values.push(`%${keyword}%`);
+        queryString += `\nand LOWER(RECIPES.Name) like LOWER($${values.length})`;
     }
-
-    if (year) {
-        setClauses.push('\nand EXTRACT(YEAR FROM RECIPES.datesubmit) = $' + (setClauses.length + 2));
-        values.push(year);
-    }
-
-    if (userId) {
-        setClauses.push('\nand USERS.UserId = $' + (setClauses.length + 2));
-        values.push(userId);
-    }
-    queryString += setClauses.join(' ');
-
-    queryString += "\nand RECIPES.status = $1";
 
     const recipeData = await postgres.query(queryString, values);
     return parseInt(recipeData.rows[0].count);
@@ -89,13 +83,12 @@ const getRecipesOfUser = async (userId, recipeStatus) => {
                         \nleft join RATING on RECIPES.RecipeId = RATING.RecipeId
                         \nleft join USERS on RECIPES.Author = USERS.UserId
                         \nwhere USERS.Status = 'Active' and RECIPES.Author = $1`;
-    let values = [userId]
-
+    let values = [userId];
     if (recipeStatus) {
         queryString += ' and RECIPES.Status = $2';
         values.push(recipeStatus);
     }
-    queryString += '\ngroup by RECIPES.RecipeId, CATEGORIES.Name'
+    queryString += '\ngroup by RECIPES.RecipeId, CATEGORIES.Name';
 
     const recipeData = await postgres.query(queryString, values);
     return recipeData.rows;
@@ -106,9 +99,10 @@ const addNewRecipe = async (recipe) => {
     const queryString = `insert into RECIPES(name, author, description, estimatedtime, ingredients, instruction, category, recipeavatar)
                         \nvalues($1, $2, $3, $4, $5, $6, $7, $8) returning *`
     const values = [recipe.name, recipe.author, recipe.description, recipe.estimatedtime, recipe.ingredients, recipe.instruction, recipe.category, recipe.recipeavatar]
-
     const recipeData = await postgres.query(queryString, values);
-    return recipeData.rowCount > 0 ? recipeData.rows[0] : null;
+    return recipeData.rowCount > 0 
+        ? recipeData.rows[0] : 
+        null;
 }
 
 const updateRecipe = async (recipe) => {
@@ -118,6 +112,20 @@ const updateRecipe = async (recipe) => {
 }
 
 
+
+const changeRecipeStatus = async ( recipeId, newStatus, approvedBy ) => {
+    let queryString = 'update RECIPES set status = $1 ';
+    let values = [newStatus, recipeId];
+    if (approvedBy) {
+        queryString += ', approved = $3 ';
+        values.push(approvedBy);
+    }
+    queryString += 'where RecipeId = $2';
+    await postgres.query(queryString, values);
+}
+
+
+
 module.exports = {
-    getRecipes, getRecipeById, getNumOfRecipes, getRecipesOfUser, addNewRecipe, updateRecipe
+    getRecipes, getRecipeById, getNumOfRecipes, getRecipesOfUser, addNewRecipe, updateRecipe, changeRecipeStatus
 }

@@ -1,8 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const { authRouter, userRouter, recipeRouter, userActionRouter } = require('./router');
-const { tokenFilter, isAuthenticated } = require('./middleware/authentication');
-const { isAdmin, isSuperAdmin } = require('./middleware/authorization');
+const { authRouter, userRouter, recipeRouter, userActionRouter, adminRouter } = require('./router');
+const { tokenFilter } = require('./middleware/authentication');
 const path = require('path');
 
 const app = express();
@@ -15,6 +14,8 @@ app.use('/auth', authRouter);
 app.use('/user', userRouter);
 app.use('/recipe', recipeRouter);
 app.use('/action', userActionRouter);
+
+app.use('/admin', adminRouter);
 
 
 // global exception handler

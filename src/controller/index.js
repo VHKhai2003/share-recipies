@@ -1,3 +1,4 @@
+const { getAllRecipesHandler, changeRecipeStatusHandler } = require('./admin.c');
 const { loginHandler, registerHanlder, logoutHandler, refreshTokenHandler } = require('./auth.c');
 const { getRecipesHandler, getRecipeByIdHandler, updateRecipeHandler, addNewRecipeHandler } = require('./recipe.c');
 const { getCommentsHandler, addCommentHandler, removeCommentHandler, updateCommentHandler, 
@@ -12,4 +13,5 @@ module.exports = {
     getCommentsHandler, addCommentHandler, removeCommentHandler, updateCommentHandler,
     getFavouriteRecipesHandler, addNewFavouriteRecipeHandler, removeRecipeFromFavouritesHandler,
     ratingHandler, getRatingOfRecipeHandler,
+    getAllRecipesHandler, changeRecipeStatusHandler,
 }
