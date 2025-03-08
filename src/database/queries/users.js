@@ -5,10 +5,7 @@ const getUserByUsername = async (username) => {
         'Select* from users where username = $1', 
         [username]
     );
-    if(result.rowCount > 0) {
-        return result.rows[0];
-    }
-    return null;
+    return result.rowCount > 0 ? result.rows[0] : null;
 }
 
 const getUserById = async (id) => {
@@ -16,10 +13,7 @@ const getUserById = async (id) => {
         'Select* from users where userid = $1', 
         [id]
     );
-    if(result.rowCount > 0) {
-        return result.rows[0];
-    }
-    return null;
+    return result.rowCount > 0 ? result.rows[0] : null;
 }
 
 // add new user for register function
@@ -36,6 +30,37 @@ const updateUserInfo = async (user) => {
     return result.rowCount > 0 ? result.rows[0] : null;
 }
 
+
+const getAllUsers = async () => {
+    let queryString = 'select users.*, roles.name as roleName from users left join roles on users.role = roles.roleid where users.role != 3';
+    const usersQueryData = await pool.query(queryString);
+    const usersData = usersQueryData.rows;
+    const users = usersData.map((item) => {
+        const roleName = item.roleName;
+        delete item.roleName;
+        delete item.password;
+        item.role = roleName;
+        return item;
+    })
+    return users;
+}
+
+
+const updateUserStatus = async (userId, newStatus) => {
+    const queryString = 'update users set status = $1 where userId = $2 returning *';
+    const values = [newStatus, userId];
+    const result = await pool.query(queryString, values);
+    return result.rowCount > 0 ? result.rows[0] : null;
+}
+
+const updateUserRole = async (userId, newRole) => {
+    const queryString = 'update users set role = $1 where userId = $2 returning *';
+    const values = [newRole, userId]
+    const result = await pool.query(queryString, values);
+    return result.rowCount > 0 ? result.rows[0] : null;
+}
+
+
 module.exports = {
-    getUserByUsername, getUserById, addNewUser, updateUserInfo,
+    getUserByUsername, getUserById, addNewUser, updateUserInfo, getAllUsers, updateUserStatus, updateUserRole,
 }

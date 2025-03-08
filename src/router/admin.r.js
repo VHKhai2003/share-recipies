@@ -1,6 +1,6 @@
 const express = require('express');
 const { isAdmin } = require('../middleware/authorization');
-const { getAllRecipesHandler, changeRecipeStatusHandler } = require('../controller/admin.c');
+const { getAllRecipesHandler, changeRecipeStatusHandler } = require('../controller');
 
 // admin router for update status of the recipe (rejected, approved)
 const adminRouter = express.Router();
