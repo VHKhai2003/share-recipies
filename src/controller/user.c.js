@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const CustomError = require('../middleware/custom-error');
 const { emailValidate } = require('../utils/data-validation');
-const { updateUserInfo } = require('../database/queries');
+const { updateUserInfo, getRecipesOfUser } = require('../database/queries');
 
 const getUserInfoHandler = async (req, res, next) => {
     res.json({
@@ -58,6 +58,21 @@ const updateUserInfoHandler = async (req, res, next) => {
     }
 }
 
+const getAllRecipesOfUserHandler = async (req, res, next) => {
+    const userId = req.user.userid;
+    try {
+        const recipes = await getRecipesOfUser(userId);
+        res.json({
+            status: 200,
+            message: 'Get recipes of user successfully',
+            data: recipes,
+        })
+    }
+    catch(err) {
+        next(new CustomError('Failed to get recipes of a user', 500));
+    }
+}
+
 module.exports = {
-    updateUserInfoHandler, getUserInfoHandler,
+    updateUserInfoHandler, getUserInfoHandler, getAllRecipesOfUserHandler,
 }

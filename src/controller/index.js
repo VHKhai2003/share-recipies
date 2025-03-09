@@ -5,11 +5,11 @@ const { getAllUsersHandlers, getUserProfileForAdminHandler, updateUserStatusHand
 const { getCommentsHandler, addCommentHandler, removeCommentHandler, updateCommentHandler, 
     getFavouriteRecipesHandler, addNewFavouriteRecipeHandler, removeRecipeFromFavouritesHandler, 
     ratingHandler, getRatingOfRecipeHandler} = require('./user-action.c');
-const { updateUserInfoHandler, getUserInfoHandler } = require('./user.c');
+const { updateUserInfoHandler, getUserInfoHandler, getAllRecipesOfUserHandler } = require('./user.c');
 
 module.exports = {
     loginHandler, registerHanlder, logoutHandler, refreshTokenHandler,
-    updateUserInfoHandler, getUserInfoHandler,
+    updateUserInfoHandler, getUserInfoHandler, getAllRecipesOfUserHandler,
     getRecipesHandler, getRecipeByIdHandler, updateRecipeHandler, addNewRecipeHandler,
     getCommentsHandler, addCommentHandler, removeCommentHandler, updateCommentHandler,
     getFavouriteRecipesHandler, addNewFavouriteRecipeHandler, removeRecipeFromFavouritesHandler,

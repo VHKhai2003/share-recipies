@@ -23,6 +23,7 @@ const loginHandler = async (req, res, next) => {
                         id: user.userid,
                         username: user.username
                     });
+                    delete user.password;
                     res.json({
                         status: 200,
                         message: 'Login successfully',

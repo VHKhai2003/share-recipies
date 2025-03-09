@@ -32,12 +32,12 @@ const updateUserInfo = async (user) => {
 
 
 const getAllUsers = async () => {
-    let queryString = 'select users.*, roles.name as roleName from users left join roles on users.role = roles.roleid where users.role != 3';
+    let queryString = 'select users.*, roles.name as rolename from users left join roles on users.role = roles.roleid where users.role != 3';
     const usersQueryData = await pool.query(queryString);
     const usersData = usersQueryData.rows;
     const users = usersData.map((item) => {
-        const roleName = item.roleName;
-        delete item.roleName;
+        const roleName = item.rolename;
+        delete item.rolename;
         delete item.password;
         item.role = roleName;
         return item;
